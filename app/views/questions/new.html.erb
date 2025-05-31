@@ -1,0 +1,9 @@
+<h1 class="text-3xl font-bold mb-6 text-gray-800">Ask a Question</h1>
+
+<%= form_with url: questions_path, method: :post, class: "mb-8" do %>
+  <%= text_area_tag :question, params[:question], rows: 4, cols: 80, class: "w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4 text-lg" %><br>
+  <%= submit_tag "Ask", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200", data: { turbo_submits_with: "Generating answer ..." } %>
+<% end %>
+
+<%= turbo_frame_tag :answer do %>
+<% end %>
