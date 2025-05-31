@@ -1,24 +1,59 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Gemini AI Bot for Personal Blog
 
-Things you may want to cover:
+Hi!
 
-* Ruby version
+This is my first project using AI/LLM and it took a whole day to complete this project being; me being an absolute beginner.
 
-* System dependencies
+Below I have laid out instructions on running this app locally. Shoot me a [DM in Twitter](https://x.com/coolprobn) if you have any questions or confusion.
 
-* Configuration
+### Built with
 
-* Database creation
+1. Rails
+2. Ruby LLM
+3. Gemini
 
-* Database initialization
+You can switch to OpenAI using RubyLLM if you want, I used Gemini because it's free.
 
-* How to run the test suite
+### Pre-requisites
 
-* Services (job queues, cache servers, search engines, etc.)
+1. API Key for Gemini, you can get yours at https://aistudio.google.com/app/apikey
+2. pgvector extension in your machine
+  
+    I am using M1 MacOS and all I had to do was run `brew install pgvector`
 
-* Deployment instructions
+### Installation
 
-* ...
+1. Clone the repo: `git clone git@github.com:coolprobn/blog-ai-chat-app.git`
+2. Regenerate credentials since current credentials file uses my secret key: `rm config/credentials.yml.enc && EDITOR=nano bin/rails credentials:edit`
+3. Add api key for Gemini inside the credentials file
+
+    ```
+    gemini:
+      api_key: add_your_key_here
+    ```
+
+### Store blog content from web to database
+
+Run `bin/rails blog:ingest` so blog content is fetched from the Web and stored in the database as a vector.
+
+It's only fetching 5-6 pages at the moment but it works for this demo so I have left it as it is for now.
+
+Rake task for this is inside `lib/ingest_blog.rake`.
+
+You can change URL to your own blog and modify content as required if you want the bot to answer questions about your blogs.
+
+### See it in action
+
+Run `bin/dev` and visit `http://localhost:3000/` to see the app in action. Ask questions and you will get a brief summary of the content in blogs.
+
+Please note that Bot is really not that smart. You have to be very specific to get correct answers.
+
+Overall, it was a very nice experience for me honestly. It had been a long time since I wanted to build something in AI space.
+
+It was also very frustrating not knowing where to start because I am an absolute beginner and by open-sourcing this repo, I hope it ends up helping a lot more beginners like me.
+
+Thanks for sticking till the end! Happy tinkering and happy coding!
+
+Lastly, don't hesitate to shoot me a [DM in Twitter](https://x.com/coolprobn) if you have any questions or confusion, I will try my best to help you.
