@@ -34,10 +34,7 @@ class QuestionsController < ApplicationController
     render turbo_stream:
              turbo_stream.replace(
                "answer",
-               partial: "questions/answer",
-               locals: {
-                 answer: @answer_markdown
-               }
+               partial: "questions/answer"
              )
   end
 end
