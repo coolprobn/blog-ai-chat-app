@@ -4,9 +4,9 @@
 
 Hi!
 
-This is my first project using AI/LLM and it took a whole day to complete this project being; me being an absolute beginner.
+This is my first project using AI/LLM and it took a whole day to complete this project; me being an absolute beginner.
 
-Below I have laid out instructions on running this app locally. Shoot me a [DM in Twitter](https://x.com/coolprobn) if you have any questions or confusion.
+Below I have laid out instructions on running this app locally.
 
 ### Built with
 
