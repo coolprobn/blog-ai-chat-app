@@ -20,7 +20,7 @@ class QuestionsController < ApplicationController
 
       Context:
       #{context}
-      
+
       Question: #{question}
     TEXT
 

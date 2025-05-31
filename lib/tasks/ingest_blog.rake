@@ -1,16 +1,21 @@
 namespace :blog do
   desc "Fetch and store article chunks with embeddings"
   task ingest: :environment do
-    require 'ruby_llm'
-    require 'nokogiri'
-    require 'httparty'
+    require "ruby_llm"
+    require "nokogiri"
+    require "httparty"
 
     # NOTE: change this to your own blog URL if you want
     base_url = "https://prabinpoudel.com.np"
     article_index = HTTParty.get("#{base_url}/articles/")
-    doc = Nokogiri::HTML(article_index.body)
+    doc = Nokogiri.HTML(article_index.body)
 
-    links = doc.css('a').map { |a| a['href'] }.select { |href| href&.include?("/articles/") }.uniq
+    links =
+      doc
+        .css("a")
+        .map { |a| a["href"] }
+        .select { |href| href&.include?("/articles/") }
+        .uniq
     debugger
 
     links.each do |path|
@@ -20,8 +25,8 @@ namespace :blog do
       page = HTTParty.get(full_url)
       next unless page.success?
 
-      page_doc = Nokogiri::HTML(page.body)
-      content = page_doc.css('article').text.strip
+      page_doc = Nokogiri.HTML(page.body)
+      content = page_doc.css("article").text.strip
 
       chunks = content.scan(/.{1,1000}/m)
 
