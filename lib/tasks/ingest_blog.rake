@@ -16,7 +16,6 @@ namespace :blog do
         .map { |a| a["href"] }
         .select { |href| href&.include?("/articles/") }
         .uniq
-    debugger
 
     links.each do |path|
       full_url = URI.join(base_url, path).to_s
