@@ -22,7 +22,7 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
 
-  <body class="p-8">
+  <body class="<%= content_for(:body_class) || 'p-8' %>">
     <%= yield %>
   </body>
 </html>
