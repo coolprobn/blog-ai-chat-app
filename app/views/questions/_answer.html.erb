@@ -1,8 +1,0 @@
-<%= turbo_frame_tag :answer do %>
-  <% if @answer_markdown %>
-    <h2 class="text-2xl font-semibold mb-4 text-gray-700">Answer:</h2>
-    <div class="prose prose-blue max-w-none bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
-      <%= @answer_markdown.html_safe %>
-    </div>
-  <% end %>
-<% end %>

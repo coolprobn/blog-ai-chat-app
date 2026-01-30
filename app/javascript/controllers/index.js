@@ -4,5 +4,9 @@
 
 import { application } from "./application"
 
+import AutoResizeController from "./auto_resize_controller"
 import HelloController from "./hello_controller"
+import ScrollToBottomController from "./scroll_to_bottom_controller"
+application.register("auto-resize", AutoResizeController)
 application.register("hello", HelloController)
+application.register("scroll-to-bottom", ScrollToBottomController)

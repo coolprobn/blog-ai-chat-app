@@ -25,12 +25,14 @@ namespace :blog do
       next unless page.success?
 
       page_doc = Nokogiri.HTML(page.body)
-      content = page_doc.css("article").text.strip
+      article_node = page_doc.css("article")
+      content = article_node.text.strip
 
       chunks = content.scan(/.{1,1000}/m)
 
       chunks.each do |chunk|
-        embedding = RubyLLM.embed(chunk)
+        embedding =
+          RubyLLM.embed(chunk, provider: :ollama, assume_model_exists: true)
 
         ArticleChunk.create!(content: chunk, embedding: embedding.vectors)
       end
