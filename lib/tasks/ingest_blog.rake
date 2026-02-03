@@ -25,8 +25,27 @@ namespace :blog do
       next unless page.success?
 
       page_doc = Nokogiri.HTML(page.body)
-      article_node = page_doc.css("article")
-      content = article_node.text.strip
+      article_node = page_doc.css("article").first
+      next unless article_node
+
+      # Extract text but preserve hyperlinks as "link text (url)" so references are stored
+      content = []
+      article_node.traverse do |node|
+        if node.is_a?(Nokogiri::XML::Text)
+          # Skip text inside <a> so we don't duplicate link text
+          content << node.text if node.parent.name != "a"
+        elsif node.name == "a" && node["href"].present?
+          link_text = node.text.strip.presence || node["href"]
+          href = node["href"].strip
+          href = URI.join(full_url, href).to_s if href.start_with?("/")
+          content << " #{link_text} (#{href}) "
+        end
+      end
+
+      content = content.compact.join.gsub(/\s+/, " ").strip
+
+      source_title =
+        article_node.css("h1, h2").first&.text&.strip.presence || full_url
 
       chunks = content.scan(/.{1,1000}/m)
 
@@ -34,7 +53,12 @@ namespace :blog do
         embedding =
           RubyLLM.embed(chunk, provider: :ollama, assume_model_exists: true)
 
-        ArticleChunk.create!(content: chunk, embedding: embedding.vectors)
+        ArticleChunk.create!(
+          content: chunk,
+          embedding: embedding.vectors,
+          source_url: full_url,
+          source_title: source_title
+        )
       end
     end
   end

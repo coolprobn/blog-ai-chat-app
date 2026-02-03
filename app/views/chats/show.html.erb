@@ -2,12 +2,12 @@
 
 <div class="flex h-full bg-[#f7f7f8]">
   <%# Left sidebar — ChatGPT-style %>
-  <aside class="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-[#171717] text-gray-300">
+  <aside class="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-[#222831] text-gray-300">
     <%# New chat button %>
-    <div class="border-b border-gray-800 p-3">
+    <div class="border-b border-[#393e46] p-3">
       <%= button_to chats_path,
                     method: :post,
-                    class: "flex w-full items-center gap-3 rounded-lg border border-gray-700 bg-transparent px-3 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-colors" do %>
+                    class: "flex w-full items-center gap-3 rounded-lg border border-[#393e46] bg-transparent px-3 py-2.5 text-sm font-medium text-white hover:bg-[#393e46] transition-colors" do %>
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -22,7 +22,7 @@
         <nav class="p-2">
           <% chats.each do |chat| %>
             <%= link_to chat_path(chat),
-                        class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 hover:bg-gray-800 mb-1 transition-colors #{'bg-gray-800' if chat.id == @chat.id}" do %>
+                        class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 hover:bg-[#393e46] mb-1 transition-colors #{'bg-[#393e46]' if chat.id == @chat.id}" do %>
               <svg class="h-4 w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
@@ -65,7 +65,7 @@
 
             <div class="mb-6 flex gap-3 <%= message.role == 'user' ? 'flex-row-reverse' : '' %>">
               <%# Avatar %>
-              <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full <%= message.role == 'user' ? 'bg-emerald-500 text-white' : 'bg-[#10a37f] text-white' %>">
+              <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full <%= message.role == 'user' ? 'bg-[#00638a] text-white' : 'bg-[#00638a] text-white' %>">
                 <% if message.role == "user" %>
                   <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 <% elsif message.role == "assistant" %>
@@ -74,15 +74,33 @@
               </div>
               <%# Message bubble %>
               <div class="flex min-w-0 max-w-[85%] flex-1 flex-col <%= message.role == 'user' ? 'items-end' : 'items-start' %>">
-                <div class="rounded-2xl px-4 py-2.5 <%= message.role == 'user' ? 'bg-[#10a37f] text-white' : 'bg-white text-gray-800 shadow-sm ring-1 ring-gray-200/80' %>">
+                <div class="rounded-2xl px-4 py-2.5 <%= message.role == 'user' ? 'bg-[#00638a] text-white' : 'bg-white text-gray-800 shadow-sm ring-1 ring-gray-200/80' %>">
                   <% if message.role == "assistant" %>
-                    <div class="chat-markdown text-[15px] leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_pre]:my-2 [&_pre]:rounded-lg [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:overflow-x-auto [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-[#10a37f] [&_a]:underline">
+                    <div class="chat-markdown text-[15px] leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_pre]:my-2 [&_pre]:rounded-lg [&_pre]:bg-gray-100 [&_pre]:p-3 [&_pre]:overflow-x-auto [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_a]:text-[#00638a] [&_a]:underline">
                       <%= Redcarpet::Markdown.new(Redcarpet::Render::HTML.new(filter_html: true), fenced_code_blocks: true, autolink: true).render(message.content.to_s).html_safe %>
                     </div>
                   <% elsif message.role == "user" %>
                     <p class="whitespace-pre-wrap text-[15px]"><%= message.content %></p>
                   <% end %>
                 </div>
+
+                <% if message.role == "assistant" && message.sources.present? %>
+                  <div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                    <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">Relevant blog posts:</p>
+                    <ul class="space-y-1 text-sm">
+                      <% Array(message.sources).each do |source| %>
+                        <% url = source.is_a?(Hash) ? source["url"] : source[:url] %>
+                        <% title = source.is_a?(Hash) ? source["title"] : source[:title] %>
+                        <% if url.present? %>
+                          <li>
+                            <%= link_to title.presence || url, url, target: "_blank", rel: "noopener noreferrer", class: "text-[#00638a] underline hover:text-[#004d66]" %>
+                          </li>
+                        <% end %>
+                      <% end %>
+                    </ul>
+                  </div>
+                <% end %>
+
                 <span class="mt-1 px-1 text-xs text-gray-400"><%= message.created_at.strftime("%H:%M") %></span>
               </div>
             </div>
@@ -98,14 +116,14 @@
                       url: chat_messages_path(@chat),
                       method: :post,
                       local: true,
-                      class: "relative flex items-end gap-2 rounded-2xl border border-gray-300 bg-white shadow-sm ring-1 ring-gray-200/80 focus-within:ring-2 focus-within:ring-[#10a37f]/30 focus-within:border-[#10a37f]" do |f| %>
+                      class: "relative flex items-end gap-2 rounded-2xl border border-gray-300 bg-white shadow-sm ring-1 ring-gray-200/80 focus-within:ring-2 focus-within:ring-[#00638a]/30 focus-within:border-[#00638a]" do |f| %>
           <%= f.text_area :content,
                           rows: 1,
                           placeholder: "Message…",
                           class: "max-h-48 w-full resize-none rounded-2xl border-0 bg-transparent py-3 pl-4 pr-12 text-[15px] text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0",
                           data: { controller: "auto-resize", action: "input->auto-resize#resize" } %>
           <button type="submit"
-                  class="absolute bottom-2 right-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#10a37f] text-white hover:bg-[#0d8c6a] disabled:opacity-50">
+                  class="absolute bottom-2 right-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#00638a] text-white hover:bg-[#004d66] disabled:opacity-50">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>

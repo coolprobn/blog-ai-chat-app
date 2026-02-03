@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_15_064522) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_02_044506) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -47,6 +47,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_15_064522) do
     t.text "content"
     t.datetime "created_at", null: false
     t.vector "embedding"
+    t.string "source_title"
+    t.string "source_url"
     t.datetime "updated_at", null: false
   end
 
@@ -68,6 +70,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_15_064522) do
     t.bigint "model_id"
     t.integer "output_tokens"
     t.string "role", null: false
+    t.jsonb "sources", default: []
     t.bigint "tool_call_id"
     t.datetime "updated_at", null: false
     t.index ["chat_id"], name: "index_messages_on_chat_id"

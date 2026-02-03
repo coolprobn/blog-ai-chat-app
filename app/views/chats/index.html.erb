@@ -2,12 +2,12 @@
 
 <div class="flex h-full bg-[#f7f7f8]">
   <%# Left sidebar — ChatGPT-style %>
-  <aside class="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-[#171717] text-gray-300">
+  <aside class="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-[#222831] text-gray-300">
     <%# New chat button %>
-    <div class="border-b border-gray-800 p-3">
+    <div class="border-b border-[#393e46] p-3">
       <%= button_to chats_path,
                     method: :post,
-                    class: "flex w-full items-center gap-3 rounded-lg border border-gray-700 bg-transparent px-3 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-colors" do %>
+                    class: "flex w-full items-center gap-3 rounded-lg border border-[#393e46] bg-transparent px-3 py-2.5 text-sm font-medium text-white hover:bg-[#393e46] transition-colors" do %>
         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -21,7 +21,7 @@
         <nav class="p-2">
           <% @chats.each do |chat| %>
             <%= link_to chat_path(chat),
-                        class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 hover:bg-gray-800 mb-1 transition-colors #{'bg-gray-800' if request.path == chat_path(chat)}" do %>
+                        class: "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 hover:bg-[#393e46] mb-1 transition-colors #{'bg-[#393e46]' if request.path == chat_path(chat)}" do %>
               <svg class="h-4 w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
@@ -48,8 +48,8 @@
     <div class="flex flex-1 items-center justify-center">
       <div class="max-w-2xl px-4 text-center">
         <div class="mb-6 flex justify-center">
-          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[#10a37f]/10">
-            <svg class="h-8 w-8 text-[#10a37f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[#00638a]/10">
+            <svg class="h-8 w-8 text-[#00638a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
