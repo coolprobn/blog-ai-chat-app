@@ -1,6 +1,4 @@
 class BlogSearch < RubyLLM::Tool
-  LIMIT = 5
-
   description "Searches blog posts for relevant content to answer questions."
   param :query, desc: "User question about the blog"
 
@@ -29,6 +27,10 @@ class BlogSearch < RubyLLM::Tool
     q = query.to_s.strip
     return { context: "No query provided.", sources: [] } if q.blank?
 
+    pre_limit = Rails.application.config.x.rag_pre_rerank_limit
+    post_limit = Rails.application.config.x.rag_post_rerank_limit
+    rerank_enabled = Rails.application.config.x.rag_rerank_enabled
+
     embedding =
       RubyLLM.embed(q, provider: :ollama, assume_model_exists: true).vectors
 
@@ -37,17 +39,27 @@ class BlogSearch < RubyLLM::Tool
         :embedding,
         embedding,
         distance: "cosine"
-      ).limit(LIMIT)
+      ).limit(pre_limit).to_a
 
     if chunks.empty?
       return { context: "No relevant blog content found.", sources: [] }
+    end
+
+    if rerank_enabled && chunks.size > post_limit
+      chunks = Reranker.new.call(q, chunks, post_limit)
+    elsif !rerank_enabled
+      chunks = chunks.first(post_limit)
     end
 
     sources = []
     context_parts = []
 
     chunks.each do |chunk|
-      context_parts << chunk.content
+      part = chunk.content
+      if chunk.source_title.present?
+        part = "[Source: #{chunk.source_title}]\n#{part}"
+      end
+      context_parts << part
       if chunk.source_url.present? || chunk.source_title.present?
         title = chunk.source_title.presence || "Post"
         url = chunk.source_url.presence
