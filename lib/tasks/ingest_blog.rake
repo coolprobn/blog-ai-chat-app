@@ -47,7 +47,7 @@ namespace :blog do
       source_title =
         article_node.css("h1, h2").first&.text&.strip.presence || full_url
 
-      chunks = content.scan(/.{1,1000}/m)
+      chunks = content.scan(/.{1,800}(?:\n|\z)/m)
 
       chunks.each do |chunk|
         embedding =

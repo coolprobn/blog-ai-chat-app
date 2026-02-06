@@ -1,36 +1,61 @@
 class MessagesController < ApplicationController
   def create
     @chat = Chat.find(params[:chat_id])
-    question = params.require(:message).fetch(:content, "").to_s
+    question = params.require(:message).fetch(:content, "").to_s.strip
 
     if question.blank?
       redirect_to @chat, alert: "Message can't be blank" and return
     end
 
-    prompt = <<~TEXT.strip
-      You are an assistant answering questions about my personal blog.
-      Before answering, call the BlogSearch tool with the user's question to fetch relevant blog context and sources, then answer using only that content.
+    system_prompt = <<~PROMPT
+      You are an assistant that answers questions ONLY using the author's blog.
 
-      Critical rules:
-      - If user has asked to list URLs, only cite or list URLs that appear verbatim in the Context returned by the tool. Do not add any URL that is not explicitly present in the Context.
-      - When the user asks about a specific post (e.g. "URLs in Beginner's Guide to RuboCop"), use only chunks labeled with that post in the Context (each block may start with [Source: Post Title]). List only URLs that appear in those chunks. Do not invent or infer URLs from general knowledge.
-      - If the tool result does not contain enough information, say you don't know. Do not fill in with external knowledge.
-    TEXT
+      You MUST:
+      1. Call the BlogSearch tool before answering.
+      2. Read ONLY the content between BLOG_CONTEXT_START and BLOG_CONTEXT_END.
+      3. If the context equals "NO_RELEVANT_BLOG_CONTENT", respond with:
+         "I couldn't find anything about this in the blog."
 
-    rag_chat = @chat.with_tool(BlogSearch).with_instructions(prompt)
+      Answer format (STRICT):
+      Summary:
+      - 2–3 bullet points summarizing the answer
+
+      Answer:
+      - Detailed explanation using only the blog content
+
+      Links:
+      - List URLs ONLY if they appear verbatim in the blog context
+      - List should be in bullet points
+      - If none exist, say "No relevant links found in the blog."
+
+      You are FORBIDDEN from using external knowledge.
+    PROMPT
+
+    rag_chat = @chat.with_tool(BlogSearch).with_instructions(system_prompt)
+
     rag_chat.ask(question)
 
-    # default order for messages is "asc" so last message is the most recent
-    last_message = @chat.messages.where(role: "assistant").last
-
-    # TODO: find some way to get the sources from the tool call
-    # Is there a way to manually do the tool call without multiple calls to the same tool? Right now we can only retrieve sources if we break execute and search and tool calls execute while we call search again to get sources. That wouldn't be ideal.
-    result = BlogSearch.new.search(question)
-
-    if last_message && result[:sources].any?
-      last_message&.update_column(:sources, result[:sources])
-    end
+    persist_sources_from_tool!
 
     redirect_to @chat
+  end
+
+  private
+
+  # Extract sources from the tool JSON and attach to the assistant message
+  def persist_sources_from_tool!
+    assistant = @chat.messages.where(role: "assistant").last
+    tool_call = @chat.messages.where(role: "tool").last
+    return unless assistant && tool_call
+
+    payload =
+      begin
+        JSON.parse(tool_call.content)
+      rescue StandardError
+        {}
+      end
+    sources = payload["sources"] || []
+
+    assistant.update_column(:sources, sources)
   end
 end

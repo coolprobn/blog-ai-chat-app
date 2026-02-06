@@ -1,76 +1,69 @@
 class BlogSearch < RubyLLM::Tool
-  description "Searches blog posts for relevant content to answer questions."
+  description "Searches the author's blog posts for relevant content only."
   param :query, desc: "User question about the blog"
 
   def execute(query:)
     result = search(query)
-    context = result[:context]
-    sources = result[:sources]
 
-    sources_line =
-      sources
-        .each_with_index
-        .map { |s, i| "[#{i + 1}] #{s[:title]} (#{s[:url]})" }
-        .join(", ")
-
-    <<~TEXT.strip
-      Context:
-      #{context}
-
-      Sources:
-      #{sources_line.present? ? "Sources: #{sources_line}\n\n" : ""}
-    TEXT
+    { context: build_context(result), sources: result[:sources] }.to_json
   end
 
-  # Returns { context: string, sources: array } for use by controllers (RAG + citations).
   def search(query)
     q = query.to_s.strip
-    return { context: "No query provided.", sources: [] } if q.blank?
+    return empty_result if q.blank?
 
     pre_limit = Rails.application.config.x.rag_pre_rerank_limit
     post_limit = Rails.application.config.x.rag_post_rerank_limit
-    rerank_enabled = Rails.application.config.x.rag_rerank_enabled
+    rerank = Rails.application.config.x.rag_rerank_enabled
 
     embedding =
       RubyLLM.embed(q, provider: :ollama, assume_model_exists: true).vectors
 
     chunks =
-      ArticleChunk.nearest_neighbors(
-        :embedding,
-        embedding,
-        distance: "cosine"
-      ).limit(pre_limit).to_a
+      ArticleChunk
+        .nearest_neighbors(:embedding, embedding, distance: "cosine")
+        .limit(pre_limit)
+        .to_a
 
-    if chunks.empty?
-      return { context: "No relevant blog content found.", sources: [] }
-    end
+    return empty_result if chunks.empty?
 
-    if rerank_enabled && chunks.size > post_limit
+    if rerank && chunks.size > post_limit
       chunks = Reranker.new.call(q, chunks, post_limit)
-    elsif !rerank_enabled
+    else
       chunks = chunks.first(post_limit)
     end
 
-    sources = []
     context_parts = []
+    sources = []
 
     chunks.each do |chunk|
-      part = chunk.content
-      if chunk.source_title.present?
-        part = "[Source: #{chunk.source_title}]\n#{part}"
-      end
-      context_parts << part
-      if chunk.source_url.present? || chunk.source_title.present?
-        title = chunk.source_title.presence || "Post"
-        url = chunk.source_url.presence
-        sources << { title:, url: } if url.present?
+      context_parts << <<~TEXT.strip
+        [Source: #{chunk.source_title}]
+        #{chunk.content}
+      TEXT
+
+      if chunk.source_url.present?
+        sources << { title: chunk.source_title, url: chunk.source_url }
       end
     end
 
-    sources.uniq! { |s| s[:url] }
+    {
+      context: context_parts.join("\n\n---\n\n"),
+      sources: sources.uniq { |s| s[:url] }
+    }
+  end
 
-    context = context_parts.join("\n\n---\n\n")
+  private
 
-    { context:, sources: }
+  def empty_result
+    { context: "NO_RELEVANT_BLOG_CONTENT", sources: [] }
+  end
+
+  def build_context(result)
+    <<~TEXT
+      BLOG_CONTEXT_START
+      #{result[:context]}
+      BLOG_CONTEXT_END
+    TEXT
   end
 end

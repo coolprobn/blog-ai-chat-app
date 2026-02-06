@@ -84,23 +84,6 @@
                   <% end %>
                 </div>
 
-                <% if message.role == "assistant" && message.sources.present? %>
-                  <div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                    <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">Relevant blog posts:</p>
-                    <ul class="space-y-1 text-sm">
-                      <% Array(message.sources).each do |source| %>
-                        <% url = source.is_a?(Hash) ? source["url"] : source[:url] %>
-                        <% title = source.is_a?(Hash) ? source["title"] : source[:title] %>
-                        <% if url.present? %>
-                          <li>
-                            <%= link_to title.presence || url, url, target: "_blank", rel: "noopener noreferrer", class: "text-[#00638a] underline hover:text-[#004d66]" %>
-                          </li>
-                        <% end %>
-                      <% end %>
-                    </ul>
-                  </div>
-                <% end %>
-
                 <span class="mt-1 px-1 text-xs text-gray-400"><%= message.created_at.strftime("%H:%M") %></span>
               </div>
             </div>
