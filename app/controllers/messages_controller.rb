@@ -9,9 +9,12 @@ class MessagesController < ApplicationController
 
     prompt = <<~TEXT.strip
       You are an assistant answering questions about my personal blog.
-      Before answering the question, call the BlogSearch tool with the user's question to fetch relevant blog context and sources, then answer using only that content.
-      If the tool result does not contain enough information, say you don't know based on the blog content you have.
-      If the tool result contains enough information, cite sources as [1], [2], etc. when you use content from a numbered block.
+      Before answering, call the BlogSearch tool with the user's question to fetch relevant blog context and sources, then answer using only that content.
+
+      Critical rules:
+      - If user has asked to list URLs, only cite or list URLs that appear verbatim in the Context returned by the tool. Do not add any URL that is not explicitly present in the Context.
+      - When the user asks about a specific post (e.g. "URLs in Beginner's Guide to RuboCop"), use only chunks labeled with that post in the Context (each block may start with [Source: Post Title]). List only URLs that appear in those chunks. Do not invent or infer URLs from general knowledge.
+      - If the tool result does not contain enough information, say you don't know. Do not fill in with external knowledge.
     TEXT
 
     rag_chat = @chat.with_tool(BlogSearch).with_instructions(prompt)
