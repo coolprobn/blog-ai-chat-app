@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_02_044506) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_17_042818) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -50,6 +50,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_02_044506) do
     t.string "source_title"
     t.string "source_url"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "articles", force: :cascade do |t|
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.string "source_url"
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.index ["source_url"], name: "index_articles_on_source_url", unique: true
   end
 
   create_table "chats", force: :cascade do |t|

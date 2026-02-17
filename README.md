@@ -64,27 +64,29 @@ To use a different chat or embedding model, edit `config/initializers/ruby_llm.r
 
 No API keys are required when using Ollama locally.
 
+### Run the app
+
+1. Start the app (this also runs **Ollama** via `bin/dev`):
+   ```bash
+   bin/dev
+   ```
+2. Open [http://localhost:3000/](http://localhost:3000/)
+
+Keep `bin/dev` running. Ollama must be up for both the web app and the ingest task below.
+
 ### Store blog content from web to database
 
-Run:
+Blog content is fetched from the web and stored in the database as vectors using the Nomic embedding model. The rake task lives in `lib/tasks/ingest_blog.rake`; you can change the blog URL and parsing logic there to point at your own blog.
+
+The ingest task calls Ollama for embeddings, so **Ollama must be running** (e.g. via `bin/dev` in another terminal, or `ollama serve`).
+
+In a **separate terminal** (with the Rails app already set up and Ollama available):
 
 ```bash
 bin/rails blog:ingest
 ```
 
-Blog content is fetched from the web and stored in the database as vectors using the Nomic embedding model.
-
-The rake task lives in `lib/tasks/ingest_blog.rake`. You can change the blog URL and parsing logic there to point at your own blog.
-
-### See it in action
-
-1. Ensure **Ollama is running** (`ollama serve` or the Ollama app).
-2. Run the app: `bin/dev`
-3. Open [http://localhost:3000/](http://localhost:3000/)
-
-You’ll land on the chats page. Create a new chat and ask questions about your blog; answers are generated using RAG over the ingested content (Qwen for chat, Nomic for retrieval).
-
-The bot only answers from the blog content it has seen—ask specific questions for best results.
+After ingest, use the app at [http://localhost:3000/](http://localhost:3000/) to ask questions about your blog. Answers are generated using RAG (Qwen for chat, Nomic for retrieval). The bot only answers from the blog content it has seen—ask specific questions for best results.
 
 ---
 

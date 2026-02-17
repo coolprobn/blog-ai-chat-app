@@ -1,0 +1,99 @@
+<% content_for :body_class, "h-screen overflow-hidden flex flex-col bg-[#f7f7f8]" %>
+
+<div class="flex flex-1 min-h-0" data-controller="search-overlay">
+  <%# Header with search %>
+  <header class="fixed top-0 left-0 right-0 z-30 flex h-14 items-center border-b border-gray-200 bg-white px-4 shadow-sm">
+    <div class="relative w-full max-w-2xl mx-auto">
+      <%= form_with url: search_path, method: :post, local: false, class: "flex", data: { search_overlay_target: "form", action: "submit->search-overlay#submit" } do %>
+        <input type="search"
+               name="q"
+               placeholder="Search the blog…"
+               autocomplete="off"
+               class="w-full rounded-l-xl border border-gray-300 bg-gray-50 py-2.5 pl-4 pr-10 text-[15px] text-gray-900 placeholder-gray-500 focus:border-[#00638a] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00638a]/20"
+               data-search-overlay-target="input">
+        <button type="submit"
+                class="rounded-r-xl border border-l-0 border-gray-300 bg-[#00638a] px-4 text-white hover:bg-[#004d66] focus:outline-none focus:ring-2 focus:ring-[#00638a]/30"
+                data-search-overlay-target="submitBtn">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </button>
+      <% end %>
+      <%# Dropdown overlay for search results %>
+      <div data-search-overlay-target="panel"
+           class="absolute top-full left-0 right-0 mt-1 hidden max-h-[min(70vh,28rem)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
+           data-action="click->search-overlay#keepOpen">
+        <div data-search-overlay-target="result" class="overflow-y-auto p-4 max-h-[min(70vh,28rem)]">
+          <p class="text-sm text-gray-500">Type a question and press Enter to search.</p>
+        </div>
+        <div data-search-overlay-target="loading" class="hidden p-6 text-center text-gray-500">
+          <span class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-[#00638a] border-t-transparent"></span>
+          <p class="mt-2 text-sm">Searching…</p>
+        </div>
+        <div data-search-overlay-target="error" class="hidden p-4 text-sm text-red-600"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex flex-1 pt-14 min-h-0">
+    <%# Left: blog list %>
+    <aside class="w-64 shrink-0 border-r border-gray-200 bg-white overflow-y-auto">
+      <nav class="p-3">
+        <p class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Blog posts</p>
+        <% if @articles.any? %>
+          <ul class="space-y-0.5">
+            <% @articles.each do |art| %>
+              <li>
+                <%= link_to art[:title],
+                            root_path(article: art[:url]),
+                            class: "block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 #{'bg-gray-100 font-medium' if @selected_url == art[:url]}" %>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="px-3 py-2 text-sm text-gray-500">No posts ingested yet.</p>
+        <% end %>
+      </nav>
+    </aside>
+
+    <%# Right: ingested article content from DB %>
+    <main class="flex-1 min-w-0 overflow-y-auto bg-[#f7f7f8]">
+      <% if @selected_url.present? %>
+        <% if @selected_article_content.present? %>
+          <article class="mx-8 px-6 py-8">
+            <header class="mb-8 border-b border-gray-200 pb-6">
+              <h1 class="text-3xl font-semibold tracking-tight text-gray-900"><%= @selected_article_title %></h1>
+              <a href="<%= @selected_url %>" target="_blank" rel="noopener" class="mt-3 inline-flex items-center text-sm font-medium text-[#00638a] hover:underline">
+                View original post
+                <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+              </a>
+            </header>
+            <div class="docs-article-body text-gray-700 [&_p]:mb-4 [&_p:last-child]:mb-0 [&_p]:leading-relaxed [&_a]:text-[#00638a] [&_a]:underline [&_a:hover]:no-underline [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_pre]:my-4 [&_pre]:rounded-lg [&_pre]:bg-gray-100 [&_pre]:p-4 [&_pre]:overflow-x-auto [&_pre]:text-sm [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:mt-8 [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mt-4 [&_h3]:mb-2 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-gray-600">
+              <%= sanitize_article_html(@selected_article_content) %>
+            </div>
+          </article>
+        <% else %>
+          <div class="flex flex-1 items-center justify-center p-12">
+            <div class="rounded-xl border border-gray-200 bg-white p-8 text-center max-w-sm text-gray-500">
+              <p class="font-medium">Content not found</p>
+              <p class="mt-1 text-sm">Re-run <code class="rounded bg-gray-100 px-1.5 py-0.5">rails blog:ingest</code> to fetch this post.</p>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="flex flex-1 items-center justify-center p-12">
+          <div class="rounded-xl border border-gray-200 bg-white p-12 text-center text-gray-500 max-w-sm">
+            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <p class="mt-4 font-medium text-gray-600">Select a post from the left</p>
+            <p class="mt-1 text-sm">or use the search bar above to ask a question.</p>
+          </div>
+        </div>
+      <% end %>
+    </main>
+  </div>
+
+  <%# Click outside to close overlay %>
+  <div data-search-overlay-target="backdrop"
+       class="fixed inset-0 z-20 hidden bg-black/20"
+       data-action="click->search-overlay#close"></div>
+</div>
