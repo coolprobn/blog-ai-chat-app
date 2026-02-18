@@ -43,8 +43,8 @@
             <% @articles.each do |art| %>
               <li>
                 <%= link_to art[:title],
-                            root_path(article: art[:url]),
-                            class: "block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 #{'bg-gray-100 font-medium' if @selected_url == art[:url]}" %>
+                            root_path(article: art[:source_url]),
+                            class: "block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 #{'bg-gray-100 font-medium' if @selected_url == art[:source_url]}" %>
               </li>
             <% end %>
           </ul>
