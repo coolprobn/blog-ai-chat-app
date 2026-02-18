@@ -3,5 +3,5 @@ Rails.application.routes.draw do
 
   post "search", to: "search#create", as: :search
 
-  root "docs#index"
+  root "articles#index"
 end

@@ -1,6 +1,6 @@
-class DocsController < ApplicationController
+class ArticlesController < ApplicationController
   def index
-    @articles = ArticleChunk.distinct_articles
+    @articles = Article.all
     @selected_url = params[:article].presence
 
     return unless @selected_url.present?

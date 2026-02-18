@@ -4,7 +4,12 @@ class SearchController < ApplicationController
   def create
     question = (params[:q] || params[:query]).to_s.strip
     if question.blank?
-      return render json: { error: "Query is required" }, status: :unprocessable_entity
+      return(
+        render json: {
+                 error: "Query is required"
+               },
+               status: :unprocessable_entity
+      )
     end
 
     chat = Chat.create!(chat_attrs)
@@ -14,16 +19,27 @@ class SearchController < ApplicationController
     assistant = chat.messages.where(role: "assistant").last
     sources = extract_sources(chat)
     raw_answer = assistant&.content.to_s
-    answer_html = Redcarpet::Markdown.new(Redcarpet::Render::HTML.new(filter_html: true), fenced_code_blocks: true, autolink: true).render(raw_answer)
+    answer_html =
+      Redcarpet::Markdown.new(
+        Redcarpet::Render::HTML.new(filter_html: true),
+        fenced_code_blocks: true,
+        autolink: true
+      ).render(raw_answer)
 
     render json: {
-      answer: raw_answer,
-      answer_html: answer_html,
-      sources: sources
-    }
+             answer: raw_answer,
+             answer_html: answer_html,
+             sources: sources
+           }
   rescue StandardError => e
-    Rails.logger.error("[Search] #{e.message}\n#{e.backtrace.first(5).join("\n")}")
-    render json: { error: "Search failed. Please try again.", answer: "" }, status: :internal_server_error
+    Rails.logger.error(
+      "[Search] #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+    )
+    render json: {
+             error: "Search failed. Please try again.",
+             answer: ""
+           },
+           status: :internal_server_error
   end
 
   private
@@ -39,10 +55,22 @@ class SearchController < ApplicationController
   def system_prompt
     <<~PROMPT
       You are an assistant that answers questions ONLY using the author's blog.
-      You MUST call the BlogSearch tool before answering.
-      Read ONLY the content between BLOG_CONTEXT_START and BLOG_CONTEXT_END.
-      If the context equals "NO_RELEVANT_BLOG_CONTENT", respond with: "I couldn't find anything about this in the blog."
-      Answer clearly. List URLs ONLY if they appear verbatim in the blog context. You are FORBIDDEN from using external knowledge.
+
+      You MUST:
+      1. Call the BlogSearch tool before answering.
+      2. Read ONLY the content between BLOG_CONTEXT_START and BLOG_CONTEXT_END.
+      3. If the context equals "NO_RELEVANT_BLOG_CONTENT", respond with: "I couldn't find anything about this in the blog."
+      4. Always return the response in Markdown format.
+
+      You are FORBIDDEN from using external knowledge.
+
+      Response format:
+      - Start with one or two short sentences summarizing the answer, then use <br /> to break the line.
+      - Then give the detailed explanation. Use <br /> to break the line between each paragraph.
+      - For lists: use Markdown bullets (- ) or numbers (1. 2. 3. ), with <br /> to break the line before the list and between list items if they are long.
+      - Put code or commands in backticks. Use <br /> to break the line before and after code blocks if needed.
+      - End with a link when relevant: "For more details, see [Post title](url)." Use only URLs from the context ([Source: ... | URL: ...]); never link to external sites.
+      - Use two <br /> (a blank line) between sections so the response is easy to read. Do not output "Summary:" or "Answer:" - just the content.
     PROMPT
   end
 

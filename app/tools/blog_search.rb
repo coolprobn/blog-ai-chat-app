@@ -1,4 +1,6 @@
 class BlogSearch < RubyLLM::Tool
+  include Rails.application.routes.url_helpers
+
   description "Searches the author's blog posts for relevant content only."
   param :query, desc: "User question about the blog"
 
@@ -37,14 +39,20 @@ class BlogSearch < RubyLLM::Tool
     sources = []
 
     chunks.each do |chunk|
+      app_url =
+        chunk.source_url.present? ? article_app_url(chunk.source_url) : nil
+      source_line =
+        if app_url.present?
+          "[Source: #{chunk.source_title} | URL: #{app_url}]"
+        else
+          "[Source: #{chunk.source_title}]"
+        end
       context_parts << <<~TEXT.strip
-        [Source: #{chunk.source_title}]
+        #{source_line}
         #{chunk.content}
       TEXT
 
-      if chunk.source_url.present?
-        sources << { title: chunk.source_title, url: chunk.source_url }
-      end
+      sources << { title: chunk.source_title, url: app_url } if app_url
     end
 
     {
@@ -54,6 +62,12 @@ class BlogSearch < RubyLLM::Tool
   end
 
   private
+
+  def article_app_url(external_url)
+    return nil if external_url.blank?
+
+    root_url(article: external_url, host: "http://localhost:3000")
+  end
 
   def empty_result
     { context: "NO_RELEVANT_BLOG_CONTENT", sources: [] }
