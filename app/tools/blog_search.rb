@@ -10,15 +10,17 @@ class BlogSearch < RubyLLM::Tool
     { context: build_context(result), sources: result[:sources] }.to_json
   end
 
-  RRF_K = 60
+  # Reciprocal Rank Fusion smoothing constant (k). Higher k reduces gap between top and lower ranks.
+  # Common default 60; score per list = 1 / (k + rank).
+  RRF_SMOOTHING_K = 60
 
   def search(query)
     q = query.to_s.strip
     return empty_result if q.blank?
 
-    pre_limit = Rails.application.config.x.rag_pre_rerank_limit
-    post_limit = Rails.application.config.x.rag_post_rerank_limit
-    rerank = Rails.application.config.x.rag_rerank_enabled
+    pre_limit = Rails.application.config.rag.pre_rerank_limit
+    post_limit = Rails.application.config.rag.post_rerank_limit
+    rerank = Rails.application.config.rag.rerank_enabled
 
     # Vector (semantic) search
     embedding =
@@ -72,7 +74,7 @@ class BlogSearch < RubyLLM::Tool
 
   private
 
-  def rrf_merge(vector_list, keyword_list, k: RRF_K)
+  def rrf_merge(vector_list, keyword_list, k: RRF_SMOOTHING_K)
     scores = Hash.new(0)
     vector_list.each_with_index { |c, i| scores[c.id] += 1.0 / (k + i + 1) }
     keyword_list.each_with_index { |c, i| scores[c.id] += 1.0 / (k + i + 1) }
