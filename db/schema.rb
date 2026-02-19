@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_17_042818) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_18_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -45,11 +45,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_042818) do
 
   create_table "article_chunks", force: :cascade do |t|
     t.text "content"
+    t.virtual "content_tsv", type: :tsvector, as: "to_tsvector('english'::regconfig, ((COALESCE(content, ''::text) || ' '::text) || (COALESCE(source_title, ''::character varying))::text))", stored: true
     t.datetime "created_at", null: false
     t.vector "embedding"
     t.string "source_title"
     t.string "source_url"
     t.datetime "updated_at", null: false
+    t.index ["content_tsv"], name: "index_article_chunks_on_content_tsv", using: :gin
   end
 
   create_table "articles", force: :cascade do |t|

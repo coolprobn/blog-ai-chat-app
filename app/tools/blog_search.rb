@@ -10,6 +10,8 @@ class BlogSearch < RubyLLM::Tool
     { context: build_context(result), sources: result[:sources] }.to_json
   end
 
+  RRF_K = 60
+
   def search(query)
     q = query.to_s.strip
     return empty_result if q.blank?
@@ -18,14 +20,21 @@ class BlogSearch < RubyLLM::Tool
     post_limit = Rails.application.config.x.rag_post_rerank_limit
     rerank = Rails.application.config.x.rag_rerank_enabled
 
+    # Vector (semantic) search
     embedding =
       RubyLLM.embed(q, provider: :ollama, assume_model_exists: true).vectors
-
-    chunks =
+    vector_chunks =
       ArticleChunk
         .nearest_neighbors(:embedding, embedding, distance: "cosine")
         .limit(pre_limit)
         .to_a
+
+    # Keyword (full-text) search
+    keyword_chunks =
+      ArticleChunk.keyword_search(q, limit: pre_limit).to_a
+
+    # Hybrid: merge with Reciprocal Rank Fusion, then cap
+    chunks = rrf_merge(vector_chunks, keyword_chunks).first(pre_limit)
 
     return empty_result if chunks.empty?
 
@@ -62,6 +71,18 @@ class BlogSearch < RubyLLM::Tool
   end
 
   private
+
+  def rrf_merge(vector_list, keyword_list, k: RRF_K)
+    scores = Hash.new(0)
+    vector_list.each_with_index { |c, i| scores[c.id] += 1.0 / (k + i + 1) }
+    keyword_list.each_with_index { |c, i| scores[c.id] += 1.0 / (k + i + 1) }
+
+    all_by_id = (vector_list + keyword_list).index_by(&:id)
+    all_by_id
+      .values
+      .sort_by { |c| -scores[c.id] }
+      .uniq(&:id)
+  end
 
   def article_app_url(external_url)
     return nil if external_url.blank?
