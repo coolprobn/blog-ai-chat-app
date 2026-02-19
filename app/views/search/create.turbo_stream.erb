@@ -1,0 +1,12 @@
+<% if @error_message.present? %>
+  <%= turbo_stream.update "search-result" do %>
+    <%= render "result_placeholder" %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.update "search-result" do %>
+    <%= render "result", answer_html: @answer_html, sources: @sources %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.replace "search-loading", partial: "search/loading", locals: { visible: false } %>
+<%= turbo_stream.replace "search-error", partial: "search/error", locals: { message: @error_message, hidden: @error_message.blank? } %>

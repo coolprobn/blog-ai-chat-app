@@ -1,0 +1,13 @@
+<div class="search-answer prose prose-sm max-w-none text-gray-700 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_p]:leading-relaxed [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_pre]:my-4 [&_pre]:rounded-lg [&_pre]:bg-gray-100 [&_pre]:p-4 [&_pre]:overflow-x-auto [&_pre]:text-sm [&_pre]:whitespace-pre [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_code]:font-mono [&_a]:text-[#00638a] [&_a]:underline">
+  <%= raw answer_html %>
+</div>
+<% if sources.present? %>
+  <div class="mt-4 border-t border-gray-200 pt-3">
+    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Sources</p>
+    <ul class="space-y-1">
+      <% sources.each do |s| %>
+        <li><a href="<%= (s["url"] || s[:url]) || '#' %>" target="_blank" rel="noopener" class="text-sm text-[#00638a] hover:underline"><%= (s["title"] || s[:title]).presence || (s["url"] || s[:url]) %></a></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

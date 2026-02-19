@@ -1,15 +1,12 @@
 class SearchController < ApplicationController
-  skip_before_action :verify_authenticity_token, if: -> { request.format.json? }
-
   def create
     question = (params[:q] || params[:query]).to_s.strip
+
     if question.blank?
-      return(
-        render json: {
-                 error: "Query is required"
-               },
-               status: :unprocessable_entity
-      )
+      @error_message = "Query is required"
+
+      respond_to { |format| format.turbo_stream }
+      return
     end
 
     chat = Chat.create!(chat_attrs)
@@ -17,29 +14,22 @@ class SearchController < ApplicationController
     rag_chat.ask(question)
 
     assistant = chat.messages.where(role: "assistant").last
-    sources = extract_sources(chat)
+    @sources = extract_sources(chat)
     raw_answer = assistant&.content.to_s
-    answer_html =
+    @answer_html =
       Redcarpet::Markdown.new(
         Redcarpet::Render::HTML.new(filter_html: true),
         fenced_code_blocks: true,
         autolink: true
       ).render(raw_answer)
 
-    render json: {
-             answer: raw_answer,
-             answer_html: answer_html,
-             sources: sources
-           }
+    respond_to { |format| format.turbo_stream }
   rescue StandardError => e
     Rails.logger.error(
       "[Search] #{e.message}\n#{e.backtrace.first(5).join("\n")}"
     )
-    render json: {
-             error: "Search failed. Please try again.",
-             answer: ""
-           },
-           status: :internal_server_error
+    @error_message = "Search failed. Please try again."
+    respond_to { |format| format.turbo_stream }
   end
 
   private
